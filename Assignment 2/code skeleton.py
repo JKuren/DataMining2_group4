@@ -144,7 +144,7 @@ def find_frequent_items(transactions, min_supp):  #transactions: list of list of
                 item_support[j] += 1
     item_support = {key:val for key, val in item_support.items() if val >= min_supp} # Delete all items with support less than min_supp
     sorted_dict =  {k: v for k, v in sorted(item_support.items(), key=lambda item: item[1], reverse=True)} # Sorts the dictionary by descending value 
-    freq_items = np.array(list(sorted_dict))
+    freq_items = list(sorted_dict)
     return freq_items  # output type: list of chars
 
 
@@ -184,32 +184,42 @@ def find_frequent_itemsets(fp_tree, min_supp, post_suffix): #find the frequent i
             if fp_tree.header_table.output_sum_counts(fp_tree)[suffix] >= min_supp: # check whether the minimum support is satisfied
                 frequent_itemsets.append(suffix + post_suffix)  # record the frequent itemsets related to the current tree's leaves
                 # TODO 4: build a sub_fp_tree with suffix and min_supp
-                sub_fp_tree = fp_tree.construct_conditional_FPtree(suffix, min_supp)
                 # TODO 5: recursively call function find_frequent_itemsets(...) to find the frequent itemsets in smaller sub-trees, and add its result frequent_itemsets. HINT: using "sub_fp_tree, min_supp, suffix + post_suffix" as the actual parameters, and use += to concatenate two lists
-                frequent_itemsets += find_frequent_itemsets(sub_fp_tree, min_supp, suffix+post_suffix)
+                frequent_itemsets += find_frequent_itemsets(fp_tree.construct_conditional_FPtree(suffix, min_supp), min_supp, suffix+post_suffix)
     return frequent_itemsets  # output type: list of strings
 
 
 
-# #------------------------------------------ Useful code for debugging --------------------------------------------------
-# #---------- A small dataset for debugging ---------------
-#transactions = [
-        # ['A', 'B', 'C', 'E', 'F','Z'],
-        # ['A', 'C', 'G','K'],
-        # ['A', 'C', 'D', 'E', 'G','K'],
-        # ['A', 'C', 'E', 'G', 'L','K'],
-        # ['A', 'C', 'B', 'K'],
-        # ['A', 'B', 'D','K'],
-        # ['A', 'B','K'],
-        # ['A', 'B', 'K']
-        # ]
-#min_supp = 3
-# test function find_frequent_item
-#freq_items = find_frequent_items(transactions, min_supp)
-#print('freq_items:', freq_items)
-# test function sort_and_cut_transactions
-#transactions = sort_and_cut_transactions(transactions, freq_items)
-#print('sorted and cut transactions:', transactions)
+#------------------------------------------ Useful code for debugging --------------------------------------------------
+#---------- A small dataset for debugging ---------------
+# transactions = [
+#         ['A', 'B', 'C', 'E', 'F','Z'],
+#         ['A', 'C', 'G'],
+#         ['A', 'C', 'D', 'E', 'G'],
+#         ['A', 'C', 'E', 'G', 'L'],
+#         ['A', 'C', 'B'],
+#         ['A', 'B', 'D'],
+#         ['A', 'B'],
+#         ['A', 'B']
+#         ]
+# transactions = [
+#     [1,2,3,5,6,20],
+#     [1,3,7],
+#     [1,3,4,5,7],
+#     [1,3,5,7,12],
+#     [1,3,2],
+#     [1,2,4],
+#     [1,2],
+#     [1,2],
+#     ]
+
+# min_supp = 3
+# # test function find_frequent_item
+# freq_items = find_frequent_items(transactions, min_supp)
+# print('freq_items:', freq_items)
+# # test function sort_and_cut_transactions
+# transactions = sort_and_cut_transactions(transactions, freq_items)
+# print('sorted and cut transactions:', transactions)
 # # test function import_data
 # transactions = import_data()
 # print('transactions:',transactions)
@@ -220,8 +230,8 @@ def find_frequent_itemsets(fp_tree, min_supp, post_suffix): #find the frequent i
 transactions = import_data()
 min_supp = 300
 freq_items = find_frequent_items(transactions, min_supp)
-print(transactions)
-# #-----------------------------------------   Step 2: Build a FP-growth tree -----------------------------------------
+#print(transactions)
+#-----------------------------------------   Step 2: Build a FP-growth tree -----------------------------------------
 fp_tree = FP_tree()
 fp_tree.construct_tree_and_table(transactions, min_supp)
 # #-----------------------------------------   Step 3: Find the frequent itemsets -------------------------------------

@@ -1,9 +1,11 @@
+from cmath import log, nan
 import numpy as np
 from sklearn import datasets
 from sklearn import cluster
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import pickle
+import math
 
 # ----------------------------------functions for unsupervised evaluation----------------------------------
 def distance(points, point): # compute the distance from a point to other/another points
@@ -75,8 +77,6 @@ def compute_avg_silhouette_coefficient(data, r_clusters):
 #         normalization is needed, i.e., the maximum value of similarity is 1
 def compute_proximity_matrix(data):
     proximity = []
-    #print(f'data {data}')
-    #print(f'cluster {r_clusters}')
     for point in data:
             row = []
             for other in data:
@@ -107,24 +107,30 @@ def correlation(A, B):
 #  Input: labels - the known labels (ground truth)
 #         r_clusters - the clusters obtained by some clustering algorithm
 def compute_precision_and_recall(labels, r_clusters):
-    true_positives = 0
-    false_positives = 0
-    true_negative = 0
-    false_negatives = 0
-    print(r_clusters)
-    print(r_labels)
-    recall = []
-    no_classes = len(set(r_labels))
+    no_classes = len(set(labels))
     no_clusters = len(r_clusters)
+
+    recall = []
     m_ij = np.zeros((no_classes, no_clusters))
+    m_j = [0]*no_classes
+
+    #Calc M_ij
     for index,cluster in enumerate(r_clusters):
         for point in cluster:
             if r_labels[point] == index:
-                m_ij
-    for i in r_labels:
-        
+                m_ij[r_labels[point]][index] +=1
 
-        
+    #Calc M_j
+    for i in r_labels:
+        m_j[i] += 1  
+
+    #Calc M_i
+    m_i = [0]*no_clusters
+    for index,cluster in enumerate(r_clusters):
+        m_i[index] = len(cluster)
+
+    recall = m_ij/m_j
+    precision = m_ij/m_i
     return precision, recall
 
 def compute_purity(precision): # compute the purity
@@ -133,6 +139,28 @@ def compute_purity(precision): # compute the purity
 # TODO 6: compute the entropy
 #  HINT: the 0 element(s) in precision will not be considered for computing entropy
 def compute_entropy(precision, r_clusters):
+    m_i = [0]*len(r_clusters)
+    m = len(data)
+    #calc m_i
+    for index,cluster in enumerate(r_clusters):
+        m_i[index] = len(cluster)
+
+    e_i = [0]*len(r_clusters)
+
+    #calc e_i
+    for index, cluster in enumerate(r_clusters):
+        for i in precision:
+            for j in i:
+                if j == 0:
+                    continue
+                else:
+                    e_i[index] += j*math.log2(j)
+            e_i[index] = -e_i[index]
+    
+    entropy = 0
+    for index, cluster in enumerate(r_clusters):
+        entropy += (m_i[index] / m)*e_i[index]
+
     return entropy
 
 #---------- similarity-oriented evaluation ----------------
@@ -140,6 +168,22 @@ def compute_entropy(precision, r_clusters):
 #  Input: labels - the known labels (ground truth)
 #         r_lables - the clustering result by some algorithm, to be evaluated
 def compute_binary_similarity(labels, r_labels):
+    f_00 = 0
+    f_01 = 0
+    f_10 = 0
+    f_11 = 0
+    for i in range(len(labels)):
+        if labels[i] == 0 and r_labels[i]==0:
+            f_00 += 1
+        if labels[i] == 0 and r_labels[i]==1:
+            f_01 += 1
+        if labels[i] == 1 and r_labels[i]==0:
+            f_10 += 1
+        if labels[i] == 1 and r_labels[i]==1:
+            f_11 += 1 
+
+    rand_statistic = (f_00+f_11)/(f_00+f_01+f_10+f_11)
+    Jaccard_coeff = f_11 / (f_01+f_10+f_11)
     return rand_statistic, Jaccard_coeff
 
 
@@ -234,6 +278,16 @@ for n_cluster in n_list:
     print('cluster centers:\n', r_centers)
     plot_clusters(data, r_clusters) # plot the data points
     print('\n')
+
+    # result = cluster.DBSCAN().fit(data) # call the kmeans algorithm
+    # r_labels = result.labels_  # the cluster labels for points
+    # r_clusters = labels_to_clusters(r_labels) # the clusters
+    # #r_centers = result.cluster_centers_  # the centers of clusters
+    # print('labels:', r_labels)
+    # print('clusters:', r_clusters)
+    # #print('cluster centers:\n', r_centers)
+    # plot_clusters(data, r_clusters) # plot the data points
+    # print('\n')
 
     #--------------------------------- Step 3: Unsupervised evaluation ---------------------------------
     #---------- 3.1 evaluation with a given number of clusters -----------------

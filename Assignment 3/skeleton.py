@@ -108,20 +108,25 @@ def correlation(A, B):
 #         r_clusters - the clusters obtained by some clustering algorithm
 def compute_precision_and_recall(labels, r_clusters):
     no_classes = len(set(labels))
-    print(labels)
-    print(no_classes)
     no_clusters = len(r_clusters)
-    recall = []
-    m_ij = np.zeros((no_classes, no_clusters))
-    m_j = [0]*no_classes
+    # print('labels',labels)
+    #print('r_labels',r_labels)
+    # print('clusters', r_clusters)
+    # print(no_classes)
+    # print(no_clusters)
 
     #Calc M_ij
+    m_ij = np.zeros((no_clusters,no_classes))
     for index,cluster in enumerate(r_clusters):
         for point in cluster:
-            if labels[point] == index:
-                m_ij[labels[point]][index] +=1
+            for classs in range(min(set(labels)),max(set(labels))+1):
+                # print('class:',classs,'labels[point]',labels[point], 'point:',point,'index:',index)
+                if labels[point] == classs:
+                    # print('DING, class:',classs,'labels[point]',labels[point], 'point:',point,'index:',index)
+                    m_ij[index][classs] +=1
 
     #Calc M_j
+    m_j = [0]*no_classes
     for i in labels:
         m_j[i] += 1  
 
@@ -129,9 +134,18 @@ def compute_precision_and_recall(labels, r_clusters):
     m_i = [0]*no_clusters
     for index,cluster in enumerate(r_clusters):
         m_i[index] = len(cluster)
+    
+    m_ij = np.array(m_ij)
+    m_j = np.array(m_j)
+    m_i = np.array(m_i)
 
-    recall = m_ij/m_j
-    precision = m_ij/m_i
+    print('m_ij',m_ij)
+    print('m_j', m_j)
+    print('m_i',m_i)
+
+    recall = np.divide(m_ij,m_j)
+    print('recall',recall)
+    precision = m_ij / m_i
     return precision, recall
 
 def compute_purity(precision): # compute the purity
@@ -268,7 +282,7 @@ for n_cluster in n_list:
     # ------------------------------------- Step 2: Clustering ------------------------------------------
     # TODO 9: replace the kmeans algorithm by the DBSCAN algorithm (optional: you can also try other algorithms)
     #  HINT: call function cluster.DBSCAN(...)
-    
+
     # result = cluster.KMeans(n_clusters=n_cluster, random_state=0).fit(data) # call the kmeans algorithm
     # r_labels = result.labels_  # the cluster labels for points
     # r_clusters = labels_to_clusters(r_labels) # the clusters
@@ -283,7 +297,7 @@ for n_cluster in n_list:
     r_labels = result.labels_  # the cluster labels for points
     r_clusters = labels_to_clusters(r_labels) # the clusters
     #r_centers = result.cluster_centers_  # the centers of clusters
-    print('labels:', r_labels)
+    print('r_labels:', r_labels)
     print('clusters:', r_clusters)
     #print('cluster centers:\n', r_centers)
     plot_clusters(data, r_clusters) # plot the data points
@@ -295,7 +309,7 @@ for n_cluster in n_list:
     # SSE = compute_SSE(data, r_clusters, r_centers)
     # # SSEs.append(SSE)
     # print('SSE:', np.round(SSE,2))
-    # # SSB = compute_SSB(data, r_clusters, r_centers)
+    # SSB = compute_SSB(data, r_clusters, r_centers)
     # print('SSB:', np.round(SSB,2))
     average_silhouette_coefficient = compute_avg_silhouette_coefficient(data, r_clusters)
     # ASCs.append(average_silhouette_coefficient)

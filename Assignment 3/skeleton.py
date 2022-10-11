@@ -108,8 +108,9 @@ def correlation(A, B):
 #         r_clusters - the clusters obtained by some clustering algorithm
 def compute_precision_and_recall(labels, r_clusters):
     no_classes = len(set(labels))
+    print(labels)
+    print(no_classes)
     no_clusters = len(r_clusters)
-
     recall = []
     m_ij = np.zeros((no_classes, no_clusters))
     m_j = [0]*no_classes
@@ -117,11 +118,11 @@ def compute_precision_and_recall(labels, r_clusters):
     #Calc M_ij
     for index,cluster in enumerate(r_clusters):
         for point in cluster:
-            if r_labels[point] == index:
-                m_ij[r_labels[point]][index] +=1
+            if labels[point] == index:
+                m_ij[labels[point]][index] +=1
 
     #Calc M_j
-    for i in r_labels:
+    for i in labels:
         m_j[i] += 1  
 
     #Calc M_i
@@ -178,7 +179,7 @@ def compute_binary_similarity(labels, r_labels):
     f_11 = f_dict.get('f1.01.0',0)
     f_10 = f_dict.get('f1.00.0',0)
     f_01 = f_dict.get('f0.01.0',0)
-    
+
     rand_statistic = (f_00+f_11) / (f_00+f_01+f_10+f_11)
     Jaccard_coeff = f_11/ (f_01+f_10+f_11)
 
@@ -267,34 +268,35 @@ for n_cluster in n_list:
     # ------------------------------------- Step 2: Clustering ------------------------------------------
     # TODO 9: replace the kmeans algorithm by the DBSCAN algorithm (optional: you can also try other algorithms)
     #  HINT: call function cluster.DBSCAN(...)
-    result = cluster.KMeans(n_clusters=n_cluster, random_state=0).fit(data) # call the kmeans algorithm
-    r_labels = result.labels_  # the cluster labels for points
-    r_clusters = labels_to_clusters(r_labels) # the clusters
-    r_centers = result.cluster_centers_  # the centers of clusters
-    print('labels:', r_labels)
-    print('clusters:', r_clusters)
-    print('cluster centers:\n', r_centers)
-    plot_clusters(data, r_clusters) # plot the data points
-    print('\n')
-
-    # result = cluster.DBSCAN().fit(data) # call the kmeans algorithm
+    
+    # result = cluster.KMeans(n_clusters=n_cluster, random_state=0).fit(data) # call the kmeans algorithm
     # r_labels = result.labels_  # the cluster labels for points
     # r_clusters = labels_to_clusters(r_labels) # the clusters
-    # #r_centers = result.cluster_centers_  # the centers of clusters
+    # r_centers = result.cluster_centers_  # the centers of clusters
     # print('labels:', r_labels)
     # print('clusters:', r_clusters)
-    # #print('cluster centers:\n', r_centers)
+    # print('cluster centers:\n', r_centers)
     # plot_clusters(data, r_clusters) # plot the data points
     # print('\n')
+
+    result = cluster.DBSCAN().fit(data) # call the kmeans algorithm
+    r_labels = result.labels_  # the cluster labels for points
+    r_clusters = labels_to_clusters(r_labels) # the clusters
+    #r_centers = result.cluster_centers_  # the centers of clusters
+    print('labels:', r_labels)
+    print('clusters:', r_clusters)
+    #print('cluster centers:\n', r_centers)
+    plot_clusters(data, r_clusters) # plot the data points
+    print('\n')
 
     #--------------------------------- Step 3: Unsupervised evaluation ---------------------------------
     #---------- 3.1 evaluation with a given number of clusters -----------------
     print('Part 1: Unsupervised evaluation')
-    SSE = compute_SSE(data, r_clusters, r_centers)
-    # SSEs.append(SSE)
-    print('SSE:', np.round(SSE,2))
-    SSB = compute_SSB(data, r_clusters, r_centers)
-    print('SSB:', np.round(SSB,2))
+    # SSE = compute_SSE(data, r_clusters, r_centers)
+    # # SSEs.append(SSE)
+    # print('SSE:', np.round(SSE,2))
+    # # SSB = compute_SSB(data, r_clusters, r_centers)
+    # print('SSB:', np.round(SSB,2))
     average_silhouette_coefficient = compute_avg_silhouette_coefficient(data, r_clusters)
     # ASCs.append(average_silhouette_coefficient)
     print('average silhouette coefficient:', np.round(average_silhouette_coefficient,2))

@@ -168,22 +168,20 @@ def compute_entropy(precision, r_clusters):
 #  Input: labels - the known labels (ground truth)
 #         r_lables - the clustering result by some algorithm, to be evaluated
 def compute_binary_similarity(labels, r_labels):
-    f_00 = 0
-    f_01 = 0
-    f_10 = 0
-    f_11 = 0
-    for i in range(len(labels)):
-        if labels[i] == 0 and r_labels[i]==0:
-            f_00 += 1
-        if labels[i] == 0 and r_labels[i]==1:
-            f_01 += 1
-        if labels[i] == 1 and r_labels[i]==0:
-            f_10 += 1
-        if labels[i] == 1 and r_labels[i]==1:
-            f_11 += 1 
+    f_dict = {}
+    for lab_i, rlab_i in list(zip(compute_clustering_matrix(labels), compute_clustering_matrix(r_labels))):
+        for lab, r_lab in list(zip(lab_i, rlab_i)):
+            f_add = f_dict.get(f'f{lab}{r_lab}',0) + 1 
+            f_dict[f'f{lab}{r_lab}']  =  f_add
 
-    rand_statistic = (f_00+f_11)/(f_00+f_01+f_10+f_11)
-    Jaccard_coeff = f_11 / (f_01+f_10+f_11)
+    f_00 = f_dict.get('f0.00.0',0)
+    f_11 = f_dict.get('f1.01.0',0)
+    f_10 = f_dict.get('f1.00.0',0)
+    f_01 = f_dict.get('f0.01.0',0)
+    
+    rand_statistic = (f_00+f_11) / (f_00+f_01+f_10+f_11)
+    Jaccard_coeff = f_11/ (f_01+f_10+f_11)
+
     return rand_statistic, Jaccard_coeff
 
 
@@ -252,17 +250,17 @@ def plot_matrix(matrix, axis_name): # plot a matrix
 #        (3) for data points distributed as different shapes: use functions in package sklearn.datasets, like datasets.make_circles(...), datasets.make_moons(...), datasets.make_blobs(...), etc. Choose parameters as you like (at least 50 points and 3 clusters)
 #------------------------------------- Step 1: generate different datasets -------------------------------------
 # ----- 1.1 tiny dataset (only for debugging) --------
-data = np.array([[0,1],[0,2], [0,4], [0,5]])  # the location of 2d data points
-labels = np.array([0,0,1,1])  # the known classification
-n_list = [2] # the number of clusters
+# data = np.array([[0,1],[0,2], [0,4], [0,5]])  # the location of 2d data points
+# labels = np.array([0,0,1,1])  # the known classification
+# n_list = [2] # the number of clusters
 # ----- 1.2 random sparse data points (only for unsupervised evaluation) --------
 # data = generate_sparse_data(100)
 # n_list = [3,4,5] # for testing the best number of clusters in unsupervised evaluation
 # SSEs, ASCs  = [], [] #ditto
 # ----- 1.3 data points distributed as different shapes (for both supervised and unsupervised evaluations) --------
-# data, labels = datasets.make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0, center_box=(-10.0, 10.0), shuffle=True, random_state=None)
-# n_list = [3,4,5] # for testing the best number of clusters in unsupervised evaluation
-# n_list = [3] # the fixed number of clusters in supervised evaluation
+data, labels = datasets.make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0, center_box=(-10.0, 10.0), shuffle=True, random_state=None)
+n_list = [3,4,5] # for testing the best number of clusters in unsupervised evaluation
+n_list = [3] # the fixed number of clusters in supervised evaluation
 
 plot_data(data)
 for n_cluster in n_list:

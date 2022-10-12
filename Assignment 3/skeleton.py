@@ -106,46 +106,26 @@ def correlation(A, B):
 # TODO 5: compute the precision and recall
 #  Input: labels - the known labels (ground truth)
 #         r_clusters - the clusters obtained by some clustering algorithm
+
 def compute_precision_and_recall(labels, r_clusters):
     no_classes = len(set(labels))
     no_clusters = len(r_clusters)
-    # print('labels',labels)
-    #print('r_labels',r_labels)
-    # print('clusters', r_clusters)
-    # print(no_classes)
-    # print(no_clusters)
-
-    #Calc M_ij
-    m_ij = np.zeros((no_clusters,no_classes))
-    for index,cluster in enumerate(r_clusters):
-        for point in cluster:
-            for classs in range(min(set(labels)),max(set(labels))+1):
-                # print('class:',classs,'labels[point]',labels[point], 'point:',point,'index:',index)
-                if labels[point] == classs:
-                    # print('DING, class:',classs,'labels[point]',labels[point], 'point:',point,'index:',index)
-                    m_ij[index][classs] +=1
-
-    #Calc M_j
-    m_j = [0]*no_classes
+    no_obj_classes = [0]*no_classes
     for i in labels:
-        m_j[i] += 1  
-
-    #Calc M_i
-    m_i = [0]*no_clusters
+        no_obj_classes[i] += 1
+    precision = np.zeros((no_classes,no_clusters))
+    recall = np.zeros((no_classes,no_clusters))
     for index,cluster in enumerate(r_clusters):
-        m_i[index] = len(cluster)
-    
-    m_ij = np.array(m_ij)
-    m_j = np.array(m_j)
-    m_i = np.array(m_i)
-
-    print('m_ij',m_ij)
-    print('m_j', m_j)
-    print('m_i',m_i)
-
-    recall = np.divide(m_ij,m_j)
-    print('recall',recall)
-    precision = m_ij / m_i
+        mj = 0
+        row = [0]*no_classes
+        for i in cluster:
+            row[labels[i]] += 1
+            mj += 1
+        precision_row = []
+        precision_row[:] = [mij / mj for mij in row]
+        precision[index] = precision_row
+        recall_row = np.divide(row,no_obj_classes)
+        recall[index] = recall_row
     return precision, recall
 
 def compute_purity(precision): # compute the purity
@@ -270,12 +250,12 @@ def plot_matrix(matrix, axis_name): # plot a matrix
 # n_list = [2] # the number of clusters
 # ----- 1.2 random sparse data points (only for unsupervised evaluation) --------
 # data = generate_sparse_data(100)
-# n_list = [3,4,5] # for testing the best number of clusters in unsupervised evaluation
+# n_list = [3,4,5,6,7,8,9,10,11,12,13,14,15] # for testing the best number of clusters in unsupervised evaluation
 # SSEs, ASCs  = [], [] #ditto
 # ----- 1.3 data points distributed as different shapes (for both supervised and unsupervised evaluations) --------
-data, labels = datasets.make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0, center_box=(-10.0, 10.0), shuffle=True, random_state=None)
+data, labels = datasets.make_blobs(n_samples=100, n_features=6, centers=6, cluster_std=1.0, center_box=(-10.0, 10.0), shuffle=True, random_state=None)
 n_list = [3,4,5] # for testing the best number of clusters in unsupervised evaluation
-n_list = [3] # the fixed number of clusters in supervised evaluation
+n_list = [6] # the fixed number of clusters in supervised evaluation
 
 plot_data(data)
 for n_cluster in n_list:
@@ -293,7 +273,7 @@ for n_cluster in n_list:
     # plot_clusters(data, r_clusters) # plot the data points
     # print('\n')
 
-    result = cluster.DBSCAN().fit(data) # call the kmeans algorithm
+    result = cluster.DBSCAN(eps=n_cluster).fit(data) # call the DBSCAN algorithm
     r_labels = result.labels_  # the cluster labels for points
     r_clusters = labels_to_clusters(r_labels) # the clusters
     #r_centers = result.cluster_centers_  # the centers of clusters
@@ -305,7 +285,7 @@ for n_cluster in n_list:
 
     #--------------------------------- Step 3: Unsupervised evaluation ---------------------------------
     #---------- 3.1 evaluation with a given number of clusters -----------------
-    print('Part 1: Unsupervised evaluation')
+    # print('Part 1: Unsupervised evaluation')
     # SSE = compute_SSE(data, r_clusters, r_centers)
     # # SSEs.append(SSE)
     # print('SSE:', np.round(SSE,2))
@@ -316,10 +296,10 @@ for n_cluster in n_list:
     print('average silhouette coefficient:', np.round(average_silhouette_coefficient,2))
     proximity_matrix = compute_proximity_matrix(data)
     print('proximity matrix:\n', np.round(proximity_matrix,2))
-    plot_matrix(proximity_matrix, 'Points')
+    # plot_matrix(proximity_matrix, 'Points')
     clustering_matrix = compute_clustering_matrix(r_labels)
     print('clustering matrix:\n', np.round(clustering_matrix,2))
-    plot_matrix(clustering_matrix, 'Points')
+    # plot_matrix(clustering_matrix, 'Points')
     corr = correlation(proximity_matrix, proximity_matrix)
     print('corr:', np.round(corr,2))
     print('\n')
@@ -344,5 +324,6 @@ for n_cluster in n_list:
     print('\n')
 
 #------- 3.2 select the best number of clusters for unsupervised clustering -----------
-# plot_line(SSEs, [str(n) for n in n_list], 'number of clusters', 'SSE')
-# plot_line(ASCs, [str(n) for n in n_list], 'number of clusters', 'Average silhouette coefficient')
+#plot_line(SSEs, [str(n) for n in n_list], 'number of clusters', 'SSE')
+#plot_line(ASCs, [str(n) for n in n_list], 'number of clusters', 'Average silhouette coefficient')
+plt.show()

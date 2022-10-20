@@ -77,11 +77,22 @@ def compute_avg_silhouette_coefficient(data, r_clusters):
 #         normalization is needed, i.e., the maximum value of similarity is 1
 def compute_proximity_matrix(data):
     proximity = []
+    dist_mat = []
     for point in data:
-            row = []
+            distrow = []
             for other in data:
-                row.append(abs(1-(distance(point,other)/len(data))))
-            proximity.append(row)
+                distrow.append(distance(point,other))
+            dist_mat.append(distrow)
+    max_dist = max([sublist[-1] for sublist in dist_mat])
+    for sublist in dist_mat:
+        proxrow = []
+        for point in sublist:
+            temp = point/max_dist
+            temp = 1-temp
+            proxrow.append(temp)
+        proximity.append(proxrow)
+
+
     proximity = np.array(proximity)
     return proximity
 
@@ -248,10 +259,13 @@ def plot_matrix(matrix, axis_name): # plot a matrix
 # data = np.array([[0,1],[0,2], [0,4], [0,5]])  # the location of 2d data points
 # labels = np.array([0,0,1,1])  # the known classification
 # n_list = [2] # the number of clusters
+# data = np.array([[0,5],[0,8], [0,1]])  # the location of 2d data points
+# labels = np.array([0,0,1])  # the known classification
+# n_list = [2] # the number of clusters
 # ----- 1.2 random sparse data points (only for unsupervised evaluation) --------
 # data = generate_sparse_data(100)
 # n_list = [3,4,5,6,7,8,9,10,11,12,13,14,15] # for testing the best number of clusters in unsupervised evaluation
-# SSEs, ASCs  = [], [] #ditto
+SSEs, ASCs  = [], [] #ditto
 # ----- 1.3 data points distributed as different shapes (for both supervised and unsupervised evaluations) --------
 data, labels = datasets.make_blobs(n_samples=100, n_features=6, centers=6, cluster_std=1.0, center_box=(-10.0, 10.0), shuffle=True, random_state=None)
 n_list = [3,4,5] # for testing the best number of clusters in unsupervised evaluation
@@ -285,7 +299,7 @@ for n_cluster in n_list:
 
     #--------------------------------- Step 3: Unsupervised evaluation ---------------------------------
     #---------- 3.1 evaluation with a given number of clusters -----------------
-    # print('Part 1: Unsupervised evaluation')
+    print('Part 1: Unsupervised evaluation')
     # SSE = compute_SSE(data, r_clusters, r_centers)
     # # SSEs.append(SSE)
     # print('SSE:', np.round(SSE,2))
@@ -296,11 +310,11 @@ for n_cluster in n_list:
     print('average silhouette coefficient:', np.round(average_silhouette_coefficient,2))
     proximity_matrix = compute_proximity_matrix(data)
     print('proximity matrix:\n', np.round(proximity_matrix,2))
-    # plot_matrix(proximity_matrix, 'Points')
+    plot_matrix(proximity_matrix, 'Points')
     clustering_matrix = compute_clustering_matrix(r_labels)
     print('clustering matrix:\n', np.round(clustering_matrix,2))
-    # plot_matrix(clustering_matrix, 'Points')
-    corr = correlation(proximity_matrix, proximity_matrix)
+    plot_matrix(clustering_matrix, 'Points')
+    corr = correlation(proximity_matrix, clustering_matrix)
     print('corr:', np.round(corr,2))
     print('\n')
 

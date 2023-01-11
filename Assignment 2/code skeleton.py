@@ -202,6 +202,8 @@ def find_frequent_itemsets(fp_tree, min_supp, post_suffix): #find the frequent i
 #         ['A', 'B'],
 #         ['A', 'B']
 #         ]
+
+#---------- A small dataset of integers ---------------
 # transactions = [
 #     [1,2,3,5,6,20],
 #     [1,3,7],

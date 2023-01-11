@@ -77,15 +77,23 @@ def compute_avg_silhouette_coefficient(data, r_clusters):
 #         normalization is needed, i.e., the maximum value of similarity is 1
 def compute_proximity_matrix(data):
     proximity = []
-    print(data)
-    proximity = np.asarray([[1-(distance(p1, p2))/len(data) for p2 in data] for p1 in data])
-    # for point in data:
-    #         row = []
-    #         for other in data:
-    #             row.append(abs(1-(distance(other,point)/len(data))))
-    #         #print('row:',row, 'lendata', len(data))
-    #         proximity.append(row)
-    # proximity = np.array(proximity)
+    dist_mat = []
+    for point in data:
+            distrow = []
+            for other in data:
+                distrow.append(distance(point,other))
+            dist_mat.append(distrow)
+    max_dist = max([sublist[-1] for sublist in dist_mat])
+    for sublist in dist_mat:
+        proxrow = []
+        for point in sublist:
+            temp = point/max_dist
+            temp = 1-temp
+            proxrow.append(temp)
+        proximity.append(proxrow)
+
+
+    proximity = np.array(proximity)
     return proximity
 
 def compute_clustering_matrix(r_labels): # compute the clustering matrix
@@ -287,7 +295,7 @@ for n_cluster in n_list:
 
     #--------------------------------- Step 3: Unsupervised evaluation ---------------------------------
     #---------- 3.1 evaluation with a given number of clusters -----------------
-    # print('Part 1: Unsupervised evaluation')
+    print('Part 1: Unsupervised evaluation')
     # SSE = compute_SSE(data, r_clusters, r_centers)
     # # SSEs.append(SSE)
     # print('SSE:', np.round(SSE,2))

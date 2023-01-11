@@ -77,12 +77,15 @@ def compute_avg_silhouette_coefficient(data, r_clusters):
 #         normalization is needed, i.e., the maximum value of similarity is 1
 def compute_proximity_matrix(data):
     proximity = []
-    for point in data:
-            row = []
-            for other in data:
-                row.append(abs(1-(distance(point,other)/len(data))))
-            proximity.append(row)
-    proximity = np.array(proximity)
+    print(data)
+    proximity = np.asarray([[1-(distance(p1, p2))/len(data) for p2 in data] for p1 in data])
+    # for point in data:
+    #         row = []
+    #         for other in data:
+    #             row.append(abs(1-(distance(other,point)/len(data))))
+    #         #print('row:',row, 'lendata', len(data))
+    #         proximity.append(row)
+    # proximity = np.array(proximity)
     return proximity
 
 def compute_clustering_matrix(r_labels): # compute the clustering matrix
@@ -99,7 +102,6 @@ def correlation(A, B):
     cov = np.mean(np.multiply((A-np.mean(A)),(B-np.mean(B))))
     correlation_val = cov / (np.std(A)*np.std(B))
     return correlation_val
-
 
 # ----------------------------------functions for supervised evaluation----------------------------------
 # ---------- classification-oriented evaluation ----------------
@@ -245,17 +247,17 @@ def plot_matrix(matrix, axis_name): # plot a matrix
 #        (3) for data points distributed as different shapes: use functions in package sklearn.datasets, like datasets.make_circles(...), datasets.make_moons(...), datasets.make_blobs(...), etc. Choose parameters as you like (at least 50 points and 3 clusters)
 #------------------------------------- Step 1: generate different datasets -------------------------------------
 # ----- 1.1 tiny dataset (only for debugging) --------
-# data = np.array([[0,1],[0,2], [0,4], [0,5]])  # the location of 2d data points
-# labels = np.array([0,0,1,1])  # the known classification
-# n_list = [2] # the number of clusters
+data = np.array([[0,1],[0,2], [0,4], [0,5]])  # the location of 2d data points
+labels = np.array([0,0,1,1])  # the known classification
+n_list = [2] # the number of clusters
 # ----- 1.2 random sparse data points (only for unsupervised evaluation) --------
 # data = generate_sparse_data(100)
 # n_list = [3,4,5,6,7,8,9,10,11,12,13,14,15] # for testing the best number of clusters in unsupervised evaluation
-# SSEs, ASCs  = [], [] #ditto
+SSEs, ASCs  = [], [] #ditto
 # ----- 1.3 data points distributed as different shapes (for both supervised and unsupervised evaluations) --------
-data, labels = datasets.make_blobs(n_samples=100, n_features=6, centers=6, cluster_std=1.0, center_box=(-10.0, 10.0), shuffle=True, random_state=None)
-n_list = [3,4,5] # for testing the best number of clusters in unsupervised evaluation
-n_list = [6] # the fixed number of clusters in supervised evaluation
+# data, labels = datasets.make_blobs(n_samples=100, n_features=6, centers=6, cluster_std=1.0, center_box=(-10.0, 10.0), shuffle=True, random_state=None)
+# n_list = [3,4,5] # for testing the best number of clusters in unsupervised evaluation
+# n_list = [6] # the fixed number of clusters in supervised evaluation
 
 plot_data(data)
 for n_cluster in n_list:
@@ -263,25 +265,25 @@ for n_cluster in n_list:
     # TODO 9: replace the kmeans algorithm by the DBSCAN algorithm (optional: you can also try other algorithms)
     #  HINT: call function cluster.DBSCAN(...)
 
-    # result = cluster.KMeans(n_clusters=n_cluster, random_state=0).fit(data) # call the kmeans algorithm
-    # r_labels = result.labels_  # the cluster labels for points
-    # r_clusters = labels_to_clusters(r_labels) # the clusters
-    # r_centers = result.cluster_centers_  # the centers of clusters
-    # print('labels:', r_labels)
-    # print('clusters:', r_clusters)
-    # print('cluster centers:\n', r_centers)
-    # plot_clusters(data, r_clusters) # plot the data points
-    # print('\n')
-
-    result = cluster.DBSCAN(eps=n_cluster).fit(data) # call the DBSCAN algorithm
+    result = cluster.KMeans(n_clusters=n_cluster, random_state=0).fit(data) # call the kmeans algorithm
     r_labels = result.labels_  # the cluster labels for points
     r_clusters = labels_to_clusters(r_labels) # the clusters
-    #r_centers = result.cluster_centers_  # the centers of clusters
-    print('r_labels:', r_labels)
+    r_centers = result.cluster_centers_  # the centers of clusters
+    print('labels:', r_labels)
     print('clusters:', r_clusters)
-    #print('cluster centers:\n', r_centers)
+    print('cluster centers:\n', r_centers)
     plot_clusters(data, r_clusters) # plot the data points
     print('\n')
+
+    # result = cluster.DBSCAN(eps=n_cluster).fit(data) # call the DBSCAN algorithm
+    # r_labels = result.labels_  # the cluster labels for points
+    # r_clusters = labels_to_clusters(r_labels) # the clusters
+    # #r_centers = result.cluster_centers_  # the centers of clusters
+    # print('r_labels:', r_labels)
+    # print('clusters:', r_clusters)
+    # #print('cluster centers:\n', r_centers)
+    # plot_clusters(data, r_clusters) # plot the data points
+    # print('\n')
 
     #--------------------------------- Step 3: Unsupervised evaluation ---------------------------------
     #---------- 3.1 evaluation with a given number of clusters -----------------
@@ -296,11 +298,11 @@ for n_cluster in n_list:
     print('average silhouette coefficient:', np.round(average_silhouette_coefficient,2))
     proximity_matrix = compute_proximity_matrix(data)
     print('proximity matrix:\n', np.round(proximity_matrix,2))
-    # plot_matrix(proximity_matrix, 'Points')
+    plot_matrix(proximity_matrix, 'Points')
     clustering_matrix = compute_clustering_matrix(r_labels)
     print('clustering matrix:\n', np.round(clustering_matrix,2))
     # plot_matrix(clustering_matrix, 'Points')
-    corr = correlation(proximity_matrix, proximity_matrix)
+    corr = correlation(proximity_matrix, clustering_matrix)
     print('corr:', np.round(corr,2))
     print('\n')
 
